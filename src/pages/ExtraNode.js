@@ -1,22 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Doughnut } from "react-chartjs-2";
-import { Chart, ArcElement } from "chart.js";
+import { Chart, ArcElement, elements } from "chart.js";
+import { useQuery } from "@tanstack/react-query";
 Chart.register(ArcElement);
 
 const ExtraNode = () => {
-  const [intensity, setAllintensity] = useState([]);
-  useEffect(() => {
-    fetch(`http://localhost:5000/data`)
-      .then((res) => res.json())
-      .then(({ data }) => {
-        data?.slice(0, 15)?.map((element) => {
-          // console.log(element.intensity);
-          setAllintensity((current) => [...current, element.intensity]);
-          // setAllintensity(newValue);
-        });
-      });
-  }, []);
 
+  let intensity = [];
+
+  const {data:Alldata=[]} =useQuery({
+    queryKey:['data'],
+    queryFn:async()=>{
+      const res = await fetch(`http://localhost:5000/data`)
+      const data = await res.json();
+      return data.data;
+    }
+  })
+
+  const sample = Alldata.slice(0,15).map((e)=>intensity.push(e.intensity));
+  console.log(intensity);
   const data = {
     labels: ["red", "blue", "yellow", "green", "purple"],
     datasets: [
@@ -27,22 +29,10 @@ const ExtraNode = () => {
     ],
   };
 
-  const options = {
-    scales: {
-      yAxes: [
-        {
-          ticks: {
-            beginAtZero: true,
-          },
-        },
-      ],
-    },
-  };
-
   return (
-    <div className="bg-indigo-300 text-white">
+    <div className=" text-white">
       <h2>Length of intensity:{intensity.length}</h2>
-      <Doughnut data={data} options={options} />
+      <Doughnut data={data} />
     </div>
   );
 };
